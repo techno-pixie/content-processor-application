@@ -48,12 +48,18 @@ class FastAPIPoll(IConsumer):
                 
                 for submission in submissions:
                     logger.info(f"[{submission.id}] Found pending submission, processing...")
-                    await asyncio.sleep(5)
-                    await self.processor.process_submission(submission.id, submission.content)
+                    asyncio.create_task(self._process_with_delay(submission))
                 
                 await asyncio.sleep(self.poll_interval)
                 
             except Exception as e:
                 logger.error(f"Error in polling loop: {e}")
                 await asyncio.sleep(self.poll_interval)
+
+    async def _process_with_delay(self, submission) -> None:
+        try:
+            await asyncio.sleep(5)
+            await self.processor.process_submission(submission.id, submission.content)
+        except Exception as e:
+            logger.error(f"Error processing submission {submission.id}: {e}")
          
